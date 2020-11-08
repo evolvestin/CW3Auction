@@ -248,15 +248,18 @@ async def detector():
             await asyncio.sleep(0.3)
             array = former(requests.get('https://t.me/chatwars3/' + str(au_post) + '?embed=1').text)
             if array[0] != 'False':
-                post = await bot.send_message(idChannel, array[1], parse_mode='HTML')
-                db[au_post] = {
-                    'update_id': update_id,
-                    'action': 'Add',
-                    '@cw3auction': form_mash(post['message_id'], post['text']),
-                    '@chatwars3': array}
-                au_post += 1
-                google('update_cell', au_post)
-                printer('запостил новый лот')
+                try:
+                    post = await bot.send_message(idChannel, array[1], parse_mode='HTML')
+                    db[au_post] = {
+                        'update_id': update_id,
+                        'action': 'Add',
+                        '@cw3auction': form_mash(post['message_id'], post['text']),
+                        '@chatwars3': array}
+                    au_post += 1
+                    google('update_cell', au_post)
+                    printer('запостил новый лот')
+                except IndexError and Exception as e:
+                    printer(str(db[au_post]) + ' ' + str(e))
                 await asyncio.sleep(1)
         except IndexError and Exception:
             await executive()
