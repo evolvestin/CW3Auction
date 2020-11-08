@@ -139,8 +139,8 @@ def former(content):
 def start_db_creation():
     global db, limiter
     data1 = gspread.service_account('auction1.json').open('Action-Auction').worksheet('main')
-    values = data.col_values(1)
-    cell_list = data.range('A1:D' + str(len(values)))
+    values = data1.col_values(1)
+    cell_list = data1.range('A1:D' + str(len(values)))
     session = FuturesSession()
     values = int(values[0])
     counter = 1
