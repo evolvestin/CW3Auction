@@ -381,7 +381,7 @@ async def supporter():
 
 
 if __name__ == '__main__':
-    threads = [detector, lot_updater, supporter]
-    for thread_element in threads:
-        dispatcher.loop.create_task(thread_element())
+    dispatcher.loop.create_task(detector())
+    dispatcher.loop.create_task(lot_updater())
+    dispatcher.loop.create_task(supporter())
     executor.start_polling(dispatcher)
