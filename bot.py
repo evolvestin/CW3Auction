@@ -258,8 +258,8 @@ async def detector():
                     au_post += 1
                     google('update_cell', au_post)
                     printer('запостил новый лот')
-                except IndexError and Exception as e:
-                    printer(str(db[au_post]) + ' ' + str(e))
+                except IndexError and Exception as error:
+                    printer(error)
                 await asyncio.sleep(1)
         except IndexError and Exception:
             await executive()
