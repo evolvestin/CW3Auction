@@ -3,7 +3,6 @@ import re
 import copy
 import asyncio
 import gspread
-import _thread
 import objects
 import requests
 from time import sleep
@@ -36,7 +35,6 @@ idMe = 396978030
 last_requested = stamp1
 idChannel = -1001319223716
 objects.environmental_files(python=True)
-_thread.exit()
 # =================================================================
 
 
