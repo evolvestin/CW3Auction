@@ -6,7 +6,6 @@ import gspread
 import objects
 import requests
 from time import sleep
-from timer import timer
 import concurrent.futures
 from aiogram import types
 from bs4 import BeautifulSoup
@@ -66,6 +65,7 @@ def time_mash(stamp, lang=None):
 
 
 def form_mash(au_id, lot):
+    from timer import timer
     text = ''
     price = 0
     lot_id = ''
