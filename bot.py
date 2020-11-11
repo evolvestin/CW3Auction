@@ -128,9 +128,13 @@ def former(content):
     is_post_not_exist = str(soup.find('div', class_='tgme_widget_message_error'))
     if str(is_post_not_exist) == 'None':
         lot_raw = str(soup.find('div', class_='tgme_widget_message_text js-message_text')).replace('<br/>', '\n')
-        au_id = int(re.sub('t.me/.*?/', '', soup.find('div', class_='tgme_widget_message_link').get_text()))
-        lot = BeautifulSoup(lot_raw, 'html.parser').get_text()
-        goo = form_mash(au_id, lot)
+        get_au_id = soup.find('div', class_='tgme_widget_message_link')
+        if get_au_id:
+            au_id = int(re.sub('t.me/.*?/', '', get_au_id.get_text()))
+            lot = BeautifulSoup(lot_raw, 'html.parser').get_text()
+            goo = form_mash(au_id, lot)
+        else:
+            goo = ['False']
     else:
         goo = ['False']
     return goo
