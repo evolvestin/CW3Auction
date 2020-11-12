@@ -13,7 +13,6 @@ from datetime import datetime
 from aiogram.utils import executor
 from objects import printer, time_now
 from aiogram.dispatcher import Dispatcher
-from objects import async_exec as executive
 from requests_futures.sessions import FuturesSession
 
 stamp1 = time_now()
@@ -34,7 +33,62 @@ idMe = 396978030
 last_requested = stamp1
 idChannel = -1001319223716
 objects.environmental_files(python=True)
-# =================================================================
+# ====================================================================================
+
+
+def start_db_creation():
+    global db, limiter
+    data1 = gspread.service_account('auction1.json').open('Action-Auction').worksheet('main')
+    values = data1.col_values(1)
+    cell_list = data1.range('A1:D' + str(len(values)))
+    session = FuturesSession()
+    values = int(values[0])
+    counter = 1
+    au_id = 0
+    for i in cell_list:
+        if i.row > 2:
+            if i.col == 1:
+                au_id = int(i.value)
+                db[au_id] = {'update_id': 0,
+                             'action': 'None',
+                             '@cw3auction': [],
+                             '@chatwars3': []}
+            if i.col == 2:
+                db[au_id]['@cw3auction'] = [int(i.value), 0, 'Запуск']
+    while len(db) > counter:
+        futures = []
+        update_array = []
+        if limiter >= 300:
+            limiter = 1
+        for i in db:
+            if db[i]['update_id'] + 1 == update_id and limiter <= 300:
+                db[i]['update_id'] = update_id
+                update_array.append(i)
+                limiter += 1
+                counter += 1
+        for i in update_array:
+            url = 'https://t.me/cw3auction/' + str(db[i]['@cw3auction'][0]) + '?embed=1'
+            futures.append(session.get(url))
+        for future in concurrent.futures.as_completed(futures):
+            result = former(future.result().content)
+            last_time_request()
+            if result[0] != 'False':
+                for i in db:
+                    if db[i]['@cw3auction'][0] == result[0]:
+                        db[i]['@cw3auction'] = result
+                        break
+        if limiter >= 300:
+            sleep(60)
+    return values, data1
+
+
+au_post, data = start_db_creation()
+Auth = objects.AuthCentre(os.environ['TOKEN'])
+bot = Auth.start_main_bot('async')
+dispatcher = Dispatcher(bot)
+executive = Auth.async_exec
+Auth.start_message(stamp1)
+# ====================================================================================
 
 
 def last_time_request():
@@ -140,52 +194,6 @@ def former(content):
     return goo
 
 
-def start_db_creation():
-    global db, limiter
-    data1 = gspread.service_account('auction1.json').open('Action-Auction').worksheet('main')
-    values = data1.col_values(1)
-    cell_list = data1.range('A1:D' + str(len(values)))
-    session = FuturesSession()
-    values = int(values[0])
-    counter = 1
-    au_id = 0
-    for i in cell_list:
-        if i.row > 2:
-            if i.col == 1:
-                au_id = int(i.value)
-                db[au_id] = {'update_id': 0,
-                             'action': 'None',
-                             '@cw3auction': [],
-                             '@chatwars3': []}
-            if i.col == 2:
-                db[au_id]['@cw3auction'] = [int(i.value), 0, 'Запуск']
-    while len(db) > counter:
-        futures = []
-        update_array = []
-        if limiter >= 300:
-            limiter = 1
-        for i in db:
-            if db[i]['update_id'] + 1 == update_id and limiter <= 300:
-                db[i]['update_id'] = update_id
-                update_array.append(i)
-                limiter += 1
-                counter += 1
-        for i in update_array:
-            url = 'https://t.me/cw3auction/' + str(db[i]['@cw3auction'][0]) + '?embed=1'
-            futures.append(session.get(url))
-        for future in concurrent.futures.as_completed(futures):
-            result = former(future.result().content)
-            last_time_request()
-            if result[0] != 'False':
-                for i in db:
-                    if db[i]['@cw3auction'][0] == result[0]:
-                        db[i]['@cw3auction'] = result
-                        break
-        if limiter >= 300:
-            sleep(60)
-    return values, data1
-
-
 def google(action, option):
     global db, data
     if action == 'col_values':
@@ -220,13 +228,6 @@ def google(action, option):
         values = None
     sleep(1)
     return values
-
-
-au_post, data = start_db_creation()
-bot = objects.start_main_bot('async', os.environ['TOKEN'])
-objects.start_message(os.environ['TOKEN'], stamp1)
-dispatcher = Dispatcher(bot)
-# ====================================================================================
 
 
 @dispatcher.message_handler()
@@ -270,11 +271,9 @@ async def detector():
 
 
 async def lot_updater():
+    global db, limiter, update_id
     while True:
         try:
-            global db
-            global limiter
-            global update_id
             await asyncio.sleep(1)
             printer('начало')
             g_actives = google('col_values', 1)
@@ -388,7 +387,7 @@ async def supporter():
 
 
 if __name__ == '__main__':
-    dispatcher.loop.create_task(detector())
-    dispatcher.loop.create_task(lot_updater())
-    dispatcher.loop.create_task(supporter())
+    gain = [detector, lot_updater, supporter]
+    for thread_element in gain:
+        dispatcher.loop.create_task(thread_element())
     executor.start_polling(dispatcher)
