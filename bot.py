@@ -36,6 +36,50 @@ objects.environmental_files(python=True)
 # ====================================================================================
 
 
+def last_time_request():
+    global last_requested
+    last_requested = time_now()
+
+
+def time_mash(stamp, lang=None):
+    day = 0
+    text = ''
+    if lang is None:
+        lang = {'day': 'д. ', 'hour': 'ч. ', 'min': ' мин.'}
+    seconds = stamp - time_now()
+    hours = int(seconds / (60 * 60))
+    if hours > 24:
+        day = int(hours / 24)
+        hours -= day * 24
+        text += str(day) + lang['day'] + str(hours) + lang['hour']
+    elif hours > 0:
+        text += str(hours) + lang['hour']
+    elif hours < 0:
+        hours = 0
+    minutes = int((seconds / 60) - (day * 24 * 60) - (hours * 60))
+    response = objects.log_time(stamp, tag=objects.italic, form='au_normal')
+    if minutes >= 0:
+        response += '\nОсталось:' + objects.italic('  ~ ' + text + str(minutes) + lang['min'])
+    return response
+
+
+def former(content):
+    soup = BeautifulSoup(content, 'html.parser')
+    is_post_not_exist = str(soup.find('div', class_='tgme_widget_message_error'))
+    if str(is_post_not_exist) == 'None':
+        lot_raw = str(soup.find('div', class_='tgme_widget_message_text js-message_text')).replace('<br/>', '\n')
+        get_au_id = soup.find('div', class_='tgme_widget_message_link')
+        if get_au_id:
+            au_id = int(re.sub('t.me/.*?/', '', get_au_id.get_text()))
+            lot = BeautifulSoup(lot_raw, 'html.parser').get_text()
+            goo = form_mash(au_id, lot)
+        else:
+            goo = ['False']
+    else:
+        goo = ['False']
+    return goo
+
+
 def form_mash(au_id, lot):
     from timer import timer
     text = ''
@@ -95,23 +139,6 @@ def form_mash(au_id, lot):
         return [au_id, price, status]
 
 
-def former(content):
-    soup = BeautifulSoup(content, 'html.parser')
-    is_post_not_exist = str(soup.find('div', class_='tgme_widget_message_error'))
-    if str(is_post_not_exist) == 'None':
-        lot_raw = str(soup.find('div', class_='tgme_widget_message_text js-message_text')).replace('<br/>', '\n')
-        get_au_id = soup.find('div', class_='tgme_widget_message_link')
-        if get_au_id:
-            au_id = int(re.sub('t.me/.*?/', '', get_au_id.get_text()))
-            lot = BeautifulSoup(lot_raw, 'html.parser').get_text()
-            goo = form_mash(au_id, lot)
-        else:
-            goo = ['False']
-    else:
-        goo = ['False']
-    return goo
-
-
 def start_db_creation():
     global db, limiter
     data1 = gspread.service_account('auction1.json').open('Action-Auction').worksheet('main')
@@ -165,33 +192,6 @@ dispatcher = Dispatcher(bot)
 executive = Auth.async_exec
 Auth.start_message(stamp1)
 # ====================================================================================
-
-
-def last_time_request():
-    global last_requested
-    last_requested = time_now()
-
-
-def time_mash(stamp, lang=None):
-    day = 0
-    text = ''
-    if lang is None:
-        lang = {'day': 'д. ', 'hour': 'ч. ', 'min': ' мин.'}
-    seconds = stamp - time_now()
-    hours = int(seconds / (60 * 60))
-    if hours > 24:
-        day = int(hours / 24)
-        hours -= day * 24
-        text += str(day) + lang['day'] + str(hours) + lang['hour']
-    elif hours > 0:
-        text += str(hours) + lang['hour']
-    elif hours < 0:
-        hours = 0
-    minutes = int((seconds / 60) - (day * 24 * 60) - (hours * 60))
-    response = objects.log_time(stamp, tag=objects.italic, form='au_normal')
-    if minutes >= 0:
-        response += '\nОсталось:' + objects.italic('  ~ ' + text + str(minutes) + lang['min'])
-    return response
 
 
 def google(action, option):
